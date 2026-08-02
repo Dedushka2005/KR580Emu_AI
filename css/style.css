@@ -1,0 +1,188 @@
+/* Оформление эмулятора. Тёмная тема под люминофор монитора тех лет. */
+
+:root {
+  --bg: #14171a;
+  --panel: #1c2126;
+  --panel-2: #232a30;
+  --line: #2f3941;
+  --text: #d6dee6;
+  --dim: #8b98a5;
+  --accent: #37d63a;
+  --accent-dim: #1f7a21;
+  --amber: #e0a83c;
+  --red: #d1453b;
+  --mono: 'Consolas', 'DejaVu Sans Mono', 'Courier New', monospace;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font: 14px/1.45 'Segoe UI', system-ui, sans-serif;
+}
+
+.mono { font-family: var(--mono); }
+
+/* --- Шапка ------------------------------------------------------------- */
+.topbar {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 16px; flex-wrap: wrap;
+  padding: 10px 16px;
+  background: linear-gradient(180deg, #1f262c, #171c21);
+  border-bottom: 1px solid var(--line);
+}
+.topbar h1 { margin: 0; font-size: 18px; font-weight: 600; letter-spacing: .3px; }
+.topbar h1 .sub { color: var(--dim); font-size: 13px; font-weight: 400; margin-left: 8px; }
+.topbar-controls { display: flex; gap: 14px; align-items: center; }
+.topbar-controls label { color: var(--dim); font-size: 12px; display: flex; gap: 6px; align-items: center; }
+
+select, input[type=text] {
+  background: var(--panel-2); color: var(--text);
+  border: 1px solid var(--line); border-radius: 4px;
+  padding: 4px 6px; font-size: 13px;
+}
+input[type=text] { width: 110px; }
+
+/* --- Панель кнопок ------------------------------------------------------ */
+.toolbar {
+  display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+  padding: 10px 16px; background: var(--panel); border-bottom: 1px solid var(--line);
+}
+.toolbar .spacer { flex: 1; }
+.meter { color: var(--dim); font-size: 12px; }
+.meter b { color: var(--text); font-family: var(--mono); }
+
+.btn {
+  background: var(--panel-2); color: var(--text);
+  border: 1px solid var(--line); border-radius: 5px;
+  padding: 7px 14px; font-size: 13px; cursor: pointer;
+  transition: background .12s, border-color .12s;
+}
+.btn:hover:not(:disabled) { background: #2c353d; border-color: #435059; }
+.btn:disabled { opacity: .4; cursor: default; }
+.btn.primary { border-color: var(--accent-dim); color: var(--accent); }
+.btn.danger { border-color: #6b2b26; color: #e88b83; }
+.btn.small { padding: 4px 9px; font-size: 12px; }
+.btn.file { display: inline-block; }
+
+.badge {
+  font-size: 11px; letter-spacing: .6px; padding: 4px 10px;
+  border-radius: 10px; border: 1px solid var(--line); font-weight: 600;
+}
+.badge.run { color: var(--accent); border-color: var(--accent-dim); background: #14251550; }
+.badge.pause { color: var(--dim); }
+.badge.halt { color: var(--amber); border-color: #6b551f; }
+
+/* --- Раскладка ---------------------------------------------------------- */
+.layout {
+  display: grid; gap: 12px; padding: 12px;
+  grid-template-columns: minmax(420px, 2fr) minmax(240px, 1fr) minmax(300px, 1.2fr);
+  align-items: start;
+}
+@media (max-width: 1100px) { .layout { grid-template-columns: 1fr; } }
+
+.panel {
+  background: var(--panel); border: 1px solid var(--line);
+  border-radius: 8px; padding: 12px 14px;
+}
+.panel h2 {
+  margin: 0 0 10px; font-size: 12px; font-weight: 600;
+  text-transform: uppercase; letter-spacing: .8px; color: var(--dim);
+}
+.panel h3 {
+  margin: 14px 0 6px; font-size: 11px; font-weight: 600;
+  text-transform: uppercase; letter-spacing: .6px; color: var(--dim);
+}
+.screen-panel { grid-row: span 2; }
+.log-panel { grid-column: 1 / -1; }
+
+/* --- Экран -------------------------------------------------------------- */
+.screen-wrap {
+  display: flex; justify-content: center;
+  background: #0a0d0a; border: 1px solid #000; border-radius: 4px;
+  padding: 12px;
+}
+#screen {
+  image-rendering: pixelated;
+  max-width: 100%;
+  box-shadow: 0 0 40px rgba(55, 214, 58, .12);
+}
+.hint { margin-top: 10px; color: var(--dim); font-size: 12px; }
+.hint b { color: var(--text); font-weight: 600; }
+
+/* --- Регистры ------------------------------------------------------------ */
+.regs { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+.reg {
+  display: flex; justify-content: space-between; align-items: baseline;
+  background: var(--panel-2); border: 1px solid var(--line);
+  border-radius: 4px; padding: 5px 8px;
+}
+.reg.wide { grid-column: span 2; }
+.reg span { color: var(--dim); font-size: 11px; }
+.reg b { font-family: var(--mono); font-size: 14px; color: var(--accent); }
+
+.flags { display: flex; gap: 6px; }
+.flag {
+  flex: 1; text-align: center; padding: 6px 0;
+  background: var(--panel-2); border: 1px solid var(--line);
+  border-radius: 4px; font-family: var(--mono); font-size: 12px;
+  color: #55636e;
+}
+.flag.on { color: #0d1410; background: var(--accent); border-color: var(--accent); font-weight: 700; }
+
+.counters { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-top: 10px; }
+.counters div { background: var(--panel-2); border: 1px solid var(--line); border-radius: 4px; padding: 5px 8px; }
+.counters span { display: block; color: var(--dim); font-size: 11px; }
+.counters b { font-family: var(--mono); font-size: 13px; }
+
+.kv {
+  display: flex; justify-content: space-between; gap: 10px;
+  padding: 5px 0; border-top: 1px solid var(--line); font-size: 12px;
+}
+.kv span { color: var(--dim); }
+.kv.warn b, .warnable.warn b { color: var(--amber); }
+
+/* --- Дизассемблер --------------------------------------------------------- */
+.disasm {
+  font-family: var(--mono); font-size: 12.5px; line-height: 1.55;
+  background: #101418; border: 1px solid var(--line); border-radius: 5px;
+  padding: 6px 4px; user-select: none;
+}
+.dis-row {
+  display: grid; grid-template-columns: 14px 42px 74px 1fr;
+  gap: 6px; padding: 1px 6px; border-radius: 3px; cursor: pointer;
+  white-space: nowrap;
+}
+.dis-row:hover { background: #1b2229; }
+.dis-row.past { color: #5b6873; }
+.dis-row.empty { color: #333c44; cursor: default; }
+.dis-row.next { color: #a8b4bf; }
+.dis-row.current {
+  background: #1d3320; color: var(--accent); font-weight: 600;
+  box-shadow: inset 2px 0 0 var(--accent);
+}
+.dis-row.bp .dis-addr { color: var(--red); text-decoration: underline; }
+.dis-row.bp::after { content: ''; }
+.dis-mark { color: var(--accent); }
+.dis-addr { color: #7f8c99; }
+.dis-row.current .dis-addr { color: var(--accent); }
+.dis-bytes { color: #61707d; }
+
+.bp-row { display: flex; gap: 6px; margin-top: 10px; align-items: center; flex-wrap: wrap; }
+
+/* --- Загрузка образов ------------------------------------------------------ */
+.loader { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; flex-wrap: wrap; }
+.loader-name { color: var(--dim); font-size: 11.5px; flex: 1; min-width: 120px; word-break: break-all; }
+
+.memmap { font-size: 11.5px; color: var(--dim); line-height: 1.6; }
+.memmap div { border-bottom: 1px dotted #2a333b; }
+
+/* --- Журнал ---------------------------------------------------------------- */
+.log {
+  height: 120px; overflow-y: auto; font-size: 11.5px; line-height: 1.6;
+  background: #101418; border: 1px solid var(--line); border-radius: 5px;
+  padding: 6px 10px; color: #90a0ad;
+}
+.log div { border-bottom: 1px solid #191f25; padding: 1px 0; }

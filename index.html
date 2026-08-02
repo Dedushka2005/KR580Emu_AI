@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Эмулятор Радио-86РК</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<header class="topbar">
+  <h1>Радио-86РК <span class="sub">эмулятор КР580ВМ80А</span></h1>
+  <div class="topbar-controls">
+    <label>Машина
+      <select id="machineSelect">
+        <option value="rk86" selected>Радио-86РК</option>
+        <option value="mikrosha">Микроша</option>
+        <option value="apogey">Апогей БК-01</option>
+      </select>
+    </label>
+    <label>Масштаб
+      <select id="scaleSelect">
+        <option value="1">1x</option>
+        <option value="2" selected>2x</option>
+        <option value="3">3x</option>
+      </select>
+    </label>
+  </div>
+</header>
+
+<div class="toolbar">
+  <button id="btnReset" class="btn danger">Сброс</button>
+  <button id="btnRun" class="btn primary">Пуск</button>
+  <button id="btnPause" class="btn">Пауза</button>
+  <button id="btnStep" class="btn">Один шаг</button>
+  <span id="stateBadge" class="badge pause">ПАУЗА</span>
+  <span class="spacer"></span>
+  <span class="meter">Скорость: <b id="speed">—</b></span>
+</div>
+
+<main class="layout">
+
+  <!-- Экран -->
+  <section class="panel screen-panel">
+    <h2>Экран</h2>
+    <div class="screen-wrap">
+      <canvas id="screen" width="768" height="400"></canvas>
+    </div>
+    <div class="hint">
+      Клавиатура работает, когда фокус не в поле ввода.
+      <b>Alt</b> или <b>Caps Lock</b> — переключатель РУС/ЛАТ,
+      <b>Shift</b> — УС, <b>Ctrl</b> — СС.
+      Последняя клавиша: <span id="lastKey" class="mono">—</span>
+    </div>
+  </section>
+
+  <!-- Процессор -->
+  <section class="panel">
+    <h2>Процессор</h2>
+    <div class="regs">
+      <div class="reg"><span>A</span><b id="regA">00</b></div>
+      <div class="reg"><span>F</span><b id="regF">02</b></div>
+      <div class="reg"><span>BC</span><b id="regBC">0000</b></div>
+      <div class="reg"><span>DE</span><b id="regDE">0000</b></div>
+      <div class="reg"><span>HL</span><b id="regHL">0000</b></div>
+      <div class="reg"><span>(HL)</span><b id="regM">00</b></div>
+      <div class="reg"><span>SP</span><b id="regSP">0000</b></div>
+      <div class="reg wide"><span>PC</span><b id="regPC">F800</b></div>
+    </div>
+
+    <h3>Флаги</h3>
+    <div class="flags">
+      <div class="flag" id="flagS" title="Знак результата">S</div>
+      <div class="flag" id="flagZ" title="Нулевой результат">Z</div>
+      <div class="flag" id="flagA" title="Вспомогательный перенос">AC</div>
+      <div class="flag" id="flagP" title="Чётность">P</div>
+      <div class="flag" id="flagC" title="Перенос">C</div>
+      <div class="flag" id="flagI" title="Прерывания разрешены">EI</div>
+    </div>
+
+    <div class="counters">
+      <div><span>Тактов</span><b id="cycles">0</b></div>
+      <div><span>Команд</span><b id="instructions">0</b></div>
+    </div>
+
+    <div class="kv warnable">
+      <span>Неизвестные коды</span><b id="unknown" class="mono">нет</b>
+    </div>
+  </section>
+
+  <!-- Дизассемблер -->
+  <section class="panel">
+    <h2>Дизассемблер</h2>
+    <div id="disasm" class="disasm"></div>
+    <div class="bp-row">
+      <input id="bpAddr" type="text" placeholder="адрес, напр. F81D" maxlength="4" class="mono">
+      <button id="btnBpAdd" class="btn small">Точка останова</button>
+      <button id="btnBpClear" class="btn small">Снять все</button>
+    </div>
+    <div class="kv"><span>Установлены</span><b id="bpList" class="mono">нет</b></div>
+  </section>
+
+  <!-- Образы и устройства -->
+  <section class="panel">
+    <h2>Образы</h2>
+    <div class="loader">
+      <label class="btn file">ПЗУ<input id="fileRom" type="file" hidden></label>
+      <button id="btnRomClear" class="btn small" title="Вернуть встроенную заглушку">✕</button>
+      <div class="loader-name mono" id="romName">—</div>
+    </div>
+    <div class="loader">
+      <label class="btn file">Знакогенератор<input id="fileChar" type="file" hidden></label>
+      <button id="btnCharClear" class="btn small" title="Вернуть встроенный шрифт">✕</button>
+      <div class="loader-name mono" id="charName">—</div>
+    </div>
+    <p class="hint">
+      Файлы можно перетащить в окно. Загруженные образы сохраняются в браузере
+      и подхватываются при следующем открытии страницы.
+    </p>
+
+    <h3>Видео</h3>
+    <div class="kv"><span>Экранная область</span><b id="videoBase" class="mono">76D0</b></div>
+    <div class="kv"><span>Формат</span><b id="videoFormat" class="mono">64x25</b></div>
+
+    <h3>Карта памяти</h3>
+    <div id="memoryMap" class="memmap mono"></div>
+  </section>
+
+  <!-- Журнал -->
+  <section class="panel log-panel">
+    <h2>Журнал</h2>
+    <div id="log" class="log mono"></div>
+  </section>
+
+</main>
+
+<!-- Порядок важен: сначала конфигурация и ядро, затем устройства и интерфейс -->
+<script src="js/config/machines.js"></script>
+<script src="js/core/Disassembler.js"></script>
+<script src="js/core/Bus.js"></script>
+<script src="js/core/I8080.js"></script>
+<script src="js/devices/I8255.js"></script>
+<script src="js/devices/I8275.js"></script>
+<script src="js/devices/I8257.js"></script>
+<script src="js/devices/Keyboard.js"></script>
+<script src="js/video/CharGen.js"></script>
+<script src="js/video/Video.js"></script>
+<script src="js/roms/DemoROM.js"></script>
+<script src="js/Machine.js"></script>
+<script src="js/ui/Debugger.js"></script>
+<script src="js/ui/UI.js"></script>
+<script src="js/main.js"></script>
+
+</body>
+</html>
