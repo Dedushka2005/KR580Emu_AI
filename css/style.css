@@ -179,6 +179,28 @@ input[type=text] { width: 110px; }
 .memmap { font-size: 11.5px; color: var(--dim); line-height: 1.6; }
 .memmap div { border-bottom: 1px dotted #2a333b; }
 
+/* --- Диагностика клавиатуры ------------------------------------------------ */
+.kb-matrix {
+  display: grid; grid-template-columns: repeat(8, 1fr); gap: 3px;
+  background: #101418; border: 1px solid var(--line);
+  border-radius: 5px; padding: 5px;
+}
+.kb-cell {
+  text-align: center; padding: 5px 0; font-size: 11px;
+  background: var(--panel-2); border: 1px solid transparent;
+  border-radius: 3px; color: #6b7883;
+}
+/* Строка, которую монитор опрашивает прямо сейчас */
+.kb-cell.sel { border-color: var(--amber); color: var(--amber); }
+/* Нажатая клавиша */
+.kb-cell.down { background: var(--accent); color: #0d1410; font-weight: 700; border-color: var(--accent); }
+
+.check {
+  display: flex; align-items: center; gap: 7px;
+  font-size: 12px; color: var(--dim); padding: 3px 0; cursor: pointer;
+}
+.check input { accent-color: var(--accent); }
+
 /* --- Журнал ---------------------------------------------------------------- */
 .log {
   height: 120px; overflow-y: auto; font-size: 11.5px; line-height: 1.6;

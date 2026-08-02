@@ -33,7 +33,10 @@
         'flagS', 'flagZ', 'flagA', 'flagP', 'flagC', 'flagI',
         'cycles', 'instructions', 'disasm', 'stateBadge', 'speed',
         'videoBase', 'videoFormat', 'unknown', 'memoryMap',
-        'bpAddr', 'btnBpAdd', 'btnBpClear', 'bpList', 'lastKey', 'log'
+        'bpAddr', 'btnBpAdd', 'btnBpClear', 'bpList', 'lastKey', 'log',
+        'kbScanRate', 'kbControl', 'kbDirs', 'kbLastScan', 'kbLastCols',
+        'kbMods', 'kbMatrix', 'polScan', 'polReturn', 'polMod',
+        'btnKbTrace', 'btnKbClear', 'btnRomScreen', 'btnRomKeys'
       ];
       for (const id of ids) this.el[id] = document.getElementById(id);
     }
@@ -48,7 +51,10 @@
       this.machine = machine;
 
       const self = this;
-      machine.onFrame = function () { self.debugger.update(); };
+      machine.onFrame = function () {
+        self.debugger.update();
+        self.keyboardPanel.update();
+      };
       machine.onBreak = function (reason) {
         self.log('Остановлено: ' + reason + ' на адресе ' +
           Disassembler.hex(machine.cpu.pc, 4));
@@ -74,6 +80,7 @@
       machine.reset();
       this.renderMemoryMap();
       this.debugger.attach(machine);
+      this.keyboardPanel.attach(machine);
       this.updateButtons();
       this.log('Машина: ' + config.name + ', ' +
         (config.cpuFreq / 1e6).toFixed(2) + ' МГц');
@@ -81,6 +88,7 @@
     }
 
     setDebugger(dbg) { this.debugger = dbg; }
+    setKeyboardPanel(panel) { this.keyboardPanel = panel; }
 
     /* --- Кнопки ---------------------------------------------------------------- */
 
@@ -182,6 +190,26 @@
         const f = e.target.files[0];
         if (f) self.readFile(f, function (bytes) { self.applyCharGen(bytes, f.name); });
         e.target.value = '';
+      });
+
+      // Встроенные проверочные программы: подменяют ПЗУ, но не трогают
+      // сохранённый образ — кнопка «✕» вернёт загруженный монитор.
+      const builtin = function (bytes, name) {
+        self.machine.loadROM(bytes, name);
+        self.machine.reset();
+        self.el.romName.textContent = name;
+        self.debugger.forceUpdate();
+        self.updateButtons();
+        self.log('Загружено ' + name + '. Нажмите «Пуск».');
+      };
+
+      this.el.btnRomScreen.addEventListener('click', function () {
+        builtin(DemoROM.build(self.machine.config.romSize), 'встроенный тест экрана');
+      });
+
+      this.el.btnRomKeys.addEventListener('click', function () {
+        builtin(DemoROM.buildKeyboardTest(self.machine.config.romSize),
+                'встроенный тест клавиатуры');
       });
 
       this.el.btnRomClear.addEventListener('click', function () {
@@ -289,12 +317,16 @@
         if (self.machine && self.machine.keyboard.keyDown(e)) {
           e.preventDefault();
           self.el.lastKey.textContent = self.machine.keyboard.lastKeyInfo;
+          self.keyboardPanel.update(true);   // на паузе кадры не идут
         }
       });
 
       window.addEventListener('keyup', function (e) {
         if (isFormField()) return;
-        if (self.machine && self.machine.keyboard.keyUp(e)) e.preventDefault();
+        if (self.machine && self.machine.keyboard.keyUp(e)) {
+          e.preventDefault();
+          self.keyboardPanel.update(true);
+        }
       });
 
       // При потере фокуса окном «отпускаем» все клавиши, иначе они залипнут

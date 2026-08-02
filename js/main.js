@@ -11,7 +11,9 @@
   function boot() {
     const ui = new UI();
     const dbg = new Debugger(ui.el);
+    const kbd = new KeyboardPanel(ui.el);
     ui.setDebugger(dbg);
+    ui.setKeyboardPanel(kbd);
 
     const startId = ui.el.machineSelect.value || 'rk86';
     ui.createMachine(startId);
@@ -23,7 +25,12 @@
            'ставит точку останова.');
 
     // Для опытов из консоли браузера
-    global.emu = { ui: ui, dbg: dbg, get machine() { return ui.machine; } };
+    global.emu = {
+      ui: ui, dbg: dbg, kbd: kbd,
+      get machine() { return ui.machine; },
+      /** Журнал обращений монитора к ВВ55 — короткая команда для консоли */
+      kbtrace: function () { kbd.dumpTrace(); }
+    };
   }
 
   if (document.readyState === 'loading') {

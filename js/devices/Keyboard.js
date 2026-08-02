@@ -32,6 +32,14 @@
         }
       }
 
+      // Полярность сигналов — берётся из настроек, меняется на ходу из панели
+      this.scanActiveLow = cfg.scanActiveLow !== false;
+      this.returnActiveLow = cfg.returnActiveLow !== false;
+      this.modActiveLow = cfg.modActiveLow !== false;
+
+      // Счётчики для диагностики: сколько раз монитор опрашивал клавиатуру
+      this.stats = { scans: 0, modReads: 0, lastRowSelect: 0, lastColumns: 0xFF };
+
       this.rows = new Uint8Array(8);
       this.shift = false;   // УС
       this.ctrl = false;    // СС
@@ -50,31 +58,46 @@
 
     /* --- Опрос со стороны ВВ55 --------------------------------------------- */
 
-    /** Выбраны строки нулями в rowSelect, возвращаем столбцы (0 = нажато) */
+    /* Полярность сигналов вынесена в настройки: у разных машин (и даже у
+     * разных описаний РК-86) строка может выбираться нулём или единицей.
+     * Если монитор из настоящего ПЗУ не видит нажатий — перебор этих трёх
+     * флагов в панели «Клавиатура» самый быстрый способ найти нужный вариант. */
+
+    /** Опрос столбцов: в rowSelect выбрана строка, возвращаем состояние столбцов */
     scanColumns(rowSelect) {
       let cols = 0;
       for (let row = 0; row < 8; row++) {
-        if ((rowSelect & (1 << row)) === 0) cols |= this.rows[row];
+        const bit = (rowSelect & (1 << row)) !== 0;
+        const selected = this.scanActiveLow ? !bit : bit;
+        if (selected) cols |= this.rows[row];
       }
-      return (~cols) & 0xFF;
+      this.stats.scans++;
+      this.stats.lastRowSelect = rowSelect & 0xFF;
+      const out = this.returnActiveLow ? (~cols) & 0xFF : cols & 0xFF;
+      this.stats.lastColumns = out;
+      return out;
     }
 
-    /** Обратный опрос: выбраны столбцы, возвращаем строки (0 = нажато) */
+    /** Обратный опрос: выбраны столбцы, возвращаем строки */
     scanRows(colSelect) {
+      const mask = this.scanActiveLow ? (~colSelect & 0xFF) : (colSelect & 0xFF);
       let out = 0;
       for (let row = 0; row < 8; row++) {
-        if (this.rows[row] & (~colSelect & 0xFF)) out |= (1 << row);
+        if (this.rows[row] & mask) out |= (1 << row);
       }
-      return (~out) & 0xFF;
+      this.stats.scans++;
+      return this.returnActiveLow ? (~out) & 0xFF : out & 0xFF;
     }
 
-    /** Модификаторы в младших битах порта C, активный уровень низкий */
+    /** Модификаторы в младших битах порта C */
     readModifiers() {
-      let v = 0x0F;
-      if (this.shift) v &= ~this.cfg.modShift;
-      if (this.ctrl) v &= ~this.cfg.modCtrl;
-      if (this.rus) v &= ~this.cfg.modRus;
-      return v & 0x0F;
+      const cfg = this.cfg;
+      let pressed = 0;
+      if (this.shift) pressed |= cfg.modShift;
+      if (this.ctrl) pressed |= cfg.modCtrl;
+      if (this.rus) pressed |= cfg.modRus;
+      this.stats.modReads++;
+      return (this.modActiveLow ? (~pressed) : pressed) & 0x0F;
     }
 
     /* --- Нажатия ------------------------------------------------------------ */

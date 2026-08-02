@@ -117,6 +117,15 @@
       Файлы можно перетащить в окно. Загруженные образы сохраняются в браузере
       и подхватываются при следующем открытии страницы.
     </p>
+    <div class="bp-row">
+      <button id="btnRomScreen" class="btn small">Тест экрана</button>
+      <button id="btnRomKeys" class="btn small">Тест клавиатуры</button>
+    </div>
+    <p class="hint">
+      Встроенные проверочные программы. «Тест клавиатуры» опрашивает матрицу так
+      же, как это делает монитор, и печатает код нажатой клавиши в левом верхнем
+      углу экрана.
+    </p>
 
     <h3>Видео</h3>
     <div class="kv"><span>Экранная область</span><b id="videoBase" class="mono">76D0</b></div>
@@ -124,6 +133,37 @@
 
     <h3>Карта памяти</h3>
     <div id="memoryMap" class="memmap mono"></div>
+  </section>
+
+  <!-- Диагностика клавиатуры -->
+  <section class="panel">
+    <h2>Клавиатура</h2>
+    <div class="kv warnable"><span>Опросов матрицы</span><b id="kbScanRate" class="mono">0 /с</b></div>
+    <div class="kv"><span>Управляющее слово ВВ55</span><b id="kbControl" class="mono">9B</b></div>
+    <div class="kv"><span>Направления портов</span><b id="kbDirs" class="mono">—</b></div>
+    <div class="kv"><span>Последний выбор строки (PA)</span><b id="kbLastScan" class="mono">FF</b></div>
+    <div class="kv"><span>Отдано в порт B</span><b id="kbLastCols" class="mono">FF</b></div>
+    <div class="kv"><span>Модификаторы</span><b id="kbMods" class="mono">—</b></div>
+
+    <h3>Матрица 8&times;8</h3>
+    <div id="kbMatrix" class="kb-matrix mono"></div>
+    <p class="hint">
+      Подсвеченная строка — та, которую опрашивает монитор прямо сейчас;
+      залитая клетка — нажатая клавиша.
+    </p>
+
+    <h3>Полярность сигналов</h3>
+    <label class="check"><input type="checkbox" id="polScan" checked>
+      Строка выбирается нулём (PA)</label>
+    <label class="check"><input type="checkbox" id="polReturn" checked>
+      Нажатие даёт ноль (PB)</label>
+    <label class="check"><input type="checkbox" id="polMod" checked>
+      Модификатор даёт ноль (PC)</label>
+
+    <div class="bp-row">
+      <button id="btnKbTrace" class="btn small">Журнал ВВ55 в консоль</button>
+      <button id="btnKbClear" class="btn small">Сбросить счётчики</button>
+    </div>
   </section>
 
   <!-- Журнал -->
@@ -148,6 +188,7 @@
 <script src="js/roms/DemoROM.js"></script>
 <script src="js/Machine.js"></script>
 <script src="js/ui/Debugger.js"></script>
+<script src="js/ui/KeyboardPanel.js"></script>
 <script src="js/ui/UI.js"></script>
 <script src="js/main.js"></script>
 
